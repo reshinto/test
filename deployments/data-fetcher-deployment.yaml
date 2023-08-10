@@ -1,0 +1,39 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "data-fetcher-deployment"
+  namespace: "data-fetcher"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "data-fetcher"
+  template:
+    metadata:
+      labels:
+        app: "data-fetcher"
+    spec:
+      containers:
+        - name: trades-monitoring
+          image: us-central1-docker.pkg.dev/trades-ai/trades-monitoring/trades-monitoring:50e6c89
+          command:
+            - python
+            - main.py
+          env:
+            - name: IS_DATA_FETCHER
+              value: 'true'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-fetcher-service
+  namespace: "data-fetcher"
+spec:
+  type: ClusterIP
+  selector:
+    app: data-fetcher
+  ports:
+    - name: data-fetcher-grpc-port
+      protocol: TCP
+      port: 50050
+      targetPort: 50050
